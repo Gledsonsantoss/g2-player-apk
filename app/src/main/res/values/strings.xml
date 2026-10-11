@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">G2 Player</string>
+    <string name="player_url">https://g2-screen-flow.base44.app/player</string>
+</resources>
