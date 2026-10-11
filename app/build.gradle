@@ -10,7 +10,7 @@ android {
         applicationId "com.g2signage.player"
         minSdk 21
         targetSdk 34
-        versionCode 1
+        versionCode 10000
         versionName "1.0.0"
     }
 
