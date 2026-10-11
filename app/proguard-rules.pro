@@ -1,0 +1,1 @@
+# Sem regras necessárias — minifyEnabled está desativado e não há dependências externas
