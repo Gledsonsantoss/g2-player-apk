@@ -61,7 +61,7 @@ jobs:
           git config user.name "G2 Signage Bot"
           git config user.email "bot@g2signage.local"
           git add app/build.gradle
-          git commit -m "release: v$VERSION"
+          git diff --cached --quiet || git commit -m "release: v$VERSION"
           git push || echo "push ignorado"
 
       - name: Compilar APK assinado
