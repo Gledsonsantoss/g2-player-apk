@@ -1,0 +1,90 @@
+name: Release APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versao (ex: 1.1.0)'
+        required: true
+      notes:
+        description: 'Notas da versao'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-34 build-tools;34.0.0'
+
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Chave de assinatura
+        run: |
+          if [ ! -f keystore/g2player.jks ]; then
+            mkdir -p keystore
+            keytool -genkeypair -keystore keystore/g2player.jks -storepass g2player -keypass g2player \
+              -alias g2player -keyalg RSA -keysize 2048 -validity 10950 \
+              -dname "CN=G2 Digital Signage, O=G2 Digital Signage, C=BR"
+            git config user.name "G2 Signage Bot"
+            git config user.email "bot@g2signage.local"
+            git add keystore/g2player.jks
+            git commit -m "chore: chave de assinatura do player"
+            git push
+          fi
+
+      - name: Atualizar versao
+        id: version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          CODE=$(echo "$VERSION" | awk -F. '{printf "%d%02d%02d", $1, $2, $3}')
+          sed -i "s/versionCode [0-9]*/versionCode $CODE/" app/build.gradle
+          sed -i "s/versionName \"[^\"]*\"/versionName \"$VERSION\"/" app/build.gradle
+          grep -E "versionCode|versionName" app/build.gradle
+          git config user.name "G2 Signage Bot"
+          git config user.email "bot@g2signage.local"
+          git add app/build.gradle
+          git commit -m "release: v$VERSION"
+          git push || echo "push ignorado"
+
+      - name: Compilar APK assinado
+        run: |
+          if ! command -v gradle >/dev/null 2>&1; then
+            curl -sSL -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip
+            unzip -q /tmp/gradle.zip -d /opt
+            export PATH=/opt/gradle-8.7/bin:$PATH
+          fi
+          gradle assembleRelease --no-daemon \
+            -Pandroid.injected.signing.store.file=$PWD/keystore/g2player.jks \
+            -Pandroid.injected.signing.store.password=g2player \
+            -Pandroid.injected.signing.key.alias=g2player \
+            -Pandroid.injected.signing.key.password=g2player
+
+      - name: Publicar release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          NOTES="${{ github.event.inputs.notes }}"
+          if [ -z "$NOTES" ]; then NOTES="G2 Player $VERSION"; fi
+          cp app/build/outputs/apk/release/app-release.apk "g2-player-$VERSION.apk"
+          gh release create "v$VERSION" "g2-player-$VERSION.apk" \
+            --title "G2 Player $VERSION" \
+            --notes "$NOTES"
