@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Fundo -->
+    <path
+        android:fillColor="#4338CA"
+        android:pathData="M0,0 L48,0 L48,48 L0,48 Z" />
+
+    <!-- Corpo da TV -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M13,15 L35,15 C36.1,15 37,15.9 37,17 L37,31 C37,32.1 36.1,33 35,33 L13,33 C11.9,33 11,32.1 11,31 L11,17 C11,15.9 11.9,15 13,15 Z" />
+
+    <!-- Tela da TV -->
+    <path
+        android:fillColor="#4338CA"
+        android:pathData="M14,16 L34,16 L34,32 L14,32 Z" />
+
+    <!-- Base da TV -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18,33 L30,33 L30,36 L18,36 Z" />
+
+</vector>
